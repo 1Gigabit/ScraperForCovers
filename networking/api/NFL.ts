@@ -15,7 +15,7 @@ import { Sacks } from '../../models/NFL/Sacks';
 import { Tackles } from '../../models/NFL/Tackles';
 import { TeamStatistics } from '../../models/NFL/TeamStatistics';
 import { NFLModel } from '../../models/NFLModel';
-
+import * as fs from 'fs'
 export class NFL {
     base_URL: string = "https://www.covers.com/sport/football/nfl/boxscore/";
     game_id: string;
@@ -130,6 +130,23 @@ export class NFL {
                 results.push(nfl.getNFLModel());
             })
             resolve(results);
+        })
+    }
+    public static getNFLModelsStream(game_ids: Array<string>, delay: number, file: fs.WriteStream): Promise<void> {
+        const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+        console.log(`\nBegin fetching [STREAMED]`)
+        bar.start(game_ids.length, 0);
+        let totalDelay = 0;
+        let nfls = game_ids.map((game_id) => {
+            return new NFL(game_id);
+        })
+        
+        return new Promise(async (resolve) => {
+            nfls.map(async (nfl) => {
+                await nfl.initBody(totalDelay += delay, bar);
+                file.write(JSON.stringify(nfl)+"\n")
+            })
+            resolve();
         })
     }
     public static async initTables(nfls: Array<NFL>, barEnabled: boolean): Promise<NFL[]> {

@@ -1,5 +1,7 @@
 import { NFL } from './networking/api/NFL';
 import { MongoClient } from 'mongodb';
+import { createWriteStream } from 'fs';
+
 import * as tsNode from 'ts-node'
 tsNode.register();
 (async () => {
@@ -16,9 +18,14 @@ tsNode.register();
 
     // the following code examples can be pasted here...
     let game_ids = []
-    for (let i = 0; i < 1000; i++) {
-        game_ids.push(`${parseInt("244412") - 1}`);
+    let x = 244412
+    for (let i = 0; i < 100000; i++) {
+        game_ids.push(`${x--}`);
     }
-    let results = await NFL.getNFLModels(game_ids,50);
-    let insertResult = await collection.insertMany(results);
+    
+    let writeableStream = createWriteStream("./cache/bodies",{
+        'flags':"a"
+    });
+    NFL.getNFLModelsStream(game_ids,50,writeableStream);
+    // let insertResult = await collection.insertMany(results);
 })();
